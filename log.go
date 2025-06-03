@@ -25,14 +25,15 @@ const (
 )
 
 const (
-	splitter = "\t"
-)
-
-var (
-	logger       zerolog.Logger
 	LogLevelKey  = "K_LOG_LEVEL"
 	LogIDKey     = "K_LOG_ID"
 	LogSuffixKey = "K_LOG_SUFFIX" // 后缀在context中的key
+	EnvKey       = "RUN_ENV"
+)
+
+var (
+	logger      zerolog.Logger
+	globalLevel = LevelDebug
 )
 
 func init() {
@@ -52,7 +53,7 @@ func init() {
 		TimeFormat: "2006-01-02 15:04:05.000000",
 	}
 	multi := zerolog.MultiLevelWriter(consoleWriter, logFile)
-	if env := os.Getenv("RUN_ENV"); env == "prod" {
+	if env := os.Getenv(EnvKey); env == "prod" {
 		// 如果环境变量是prod环境，则只写log文件
 		multi = zerolog.MultiLevelWriter(logFile)
 	}
@@ -66,19 +67,31 @@ func init() {
  */
 func getLevelFromCtx(ctx context.Context) int {
 	var ok bool
-	var valStr string
+	var level int
 	valObj := ctx.Value(LogLevelKey)
-	if valObj != nil {
-		valStr, ok = valObj.(string)
-	}
+	level, ok = valObj.(int)
 	if !ok {
-		return LogLevelNull
-	}
-	level, err := strconv.Atoi(valStr)
-	if err != nil {
-		return LogLevelNull
+		return globalLevel
 	}
 	return level
+}
+
+/*SetCtxLogLevel
+ * @Description: 设置本次请求的context日志级别
+ * @param ctx
+ * @param int
+ */
+func SetCtxLogLevel(ctx context.Context, level int) context.Context {
+	return context.WithValue(ctx, LogLevelKey, level)
+}
+
+/*SetGlobalLogLevel
+ * @Description: 设置本服务的context日志级别
+ * @param ctx
+ * @param int
+ */
+func SetGlobalLogLevel(level int) {
+	globalLevel = level
 }
 
 /*CtxLevel
@@ -91,7 +104,7 @@ func CtxLevel(ctx context.Context) int {
 	if ctxLevel != LogLevelNull {
 		return ctxLevel
 	}
-	return LevelDebug
+	return globalLevel
 }
 
 // EventError 记录错误事件日志
