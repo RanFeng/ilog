@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	LogLevelNull = -1 // 当前未配置loglevel
-	LevelTrace   = iota
+	LogLevelNull = iota // 当前未配置loglevel
+	LevelTrace
 	LevelDebug
 	LevelInfo
 	LevelNotice

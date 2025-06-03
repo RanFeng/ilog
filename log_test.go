@@ -20,10 +20,13 @@ func printLog(ctx context.Context, event string) {
 func TestMain(t *testing.M) {
 	ctx := context.Background()
 	printLog(ctx, "test_common")
+
 	ctx = context.WithValue(ctx, LogIDKey, "this_is_log_id")
 	printLog(ctx, "test_with_logid")
+
 	SetGlobalLogLevel(LevelWarn)
 	printLog(ctx, "test_with_global_level")
+
 	ctx = SetCtxLogLevel(ctx, LevelInfo)
 	printLog(ctx, "test_with_ctx_level")
 }
